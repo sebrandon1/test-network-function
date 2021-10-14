@@ -77,7 +77,8 @@ func executeOcGetCommand(resourceType, labelQuery, namespace string) string {
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.
 func getContainersByLabel(label configsections.Label, namespace string) (containers []configsections.ContainerConfig, err error) {
-	pods, err := GetPodsByLabel(label, namespace)
+	phf := PodsHelperFuncs{}
+	pods, err := phf.GetPodsByLabel(label, namespace)
 	if err != nil {
 		return nil, err
 	}

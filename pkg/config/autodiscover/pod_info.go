@@ -153,9 +153,15 @@ func (pr *PodResource) annotationUnmarshalError(annotationKey string, err error)
 		err, annotationKey, pr.Metadata.Namespace, pr.Metadata.Name)
 }
 
+type PodsHelper interface {
+	GetPodsByLabel(label configsections.Label, namespace string) (*PodList, error)
+}
+
+type PodsHelperFuncs struct{}
+
 // GetPodsByLabel will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
 // label will be returned, regardless of the labels value.
-func GetPodsByLabel(label configsections.Label, namespace string) (*PodList, error) {
+func (phf *PodsHelperFuncs) GetPodsByLabel(label configsections.Label, namespace string) (*PodList, error) {
 	out := executeOcGetCommand(resourceTypePods, buildLabelQuery(label), namespace)
 
 	log.Debug("JSON output for all pods labeled with: ", label)

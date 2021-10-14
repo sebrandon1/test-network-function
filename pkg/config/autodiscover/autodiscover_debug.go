@@ -41,11 +41,21 @@ const (
 	deletelabelCommand = "oc label node %s %s- --overwrite=true"
 )
 
+type DebugHelpers interface {
+	FindDebugPods(*configsections.TestPartner)
+	AddDebugLabel(string)
+	DeleteDebugLabel(string)
+	CheckDebugDaemonset(int)
+}
+
+type DebugFuncs struct{}
+
 // FindDebugPods completes a `configsections.TestPartner.ContainersDebugList` from the current state of the cluster,
 // using labels and annotations to populate the data, if it's not fully configured
-func FindDebugPods(tp *configsections.TestPartner) {
+func (dh *DebugFuncs) FindDebugPods(tp *configsections.TestPartner) {
 	label := configsections.Label{Name: debugLabelName, Value: debugLabelValue}
-	pods, err := GetPodsByLabel(label, defaultNamespace)
+	phf := PodsHelperFuncs{}
+	pods, err := phf.GetPodsByLabel(label, defaultNamespace)
 	if err != nil {
 		log.Panic("can't find debug pods")
 	}
@@ -58,7 +68,7 @@ func FindDebugPods(tp *configsections.TestPartner) {
 }
 
 // AddDebugLabel add debug label to node
-func AddDebugLabel(nodeName string) {
+func (dh *DebugFuncs) AddDebugLabel(nodeName string) {
 	log.Info("add label", nodeLabelName, "=", nodeLabelValue, " to node ", nodeName)
 	ocCommand := fmt.Sprintf(addlabelCommand, nodeName, nodeLabelName, nodeLabelValue)
 	_ = utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
@@ -67,7 +77,7 @@ func AddDebugLabel(nodeName string) {
 }
 
 // AddDebugLabel remove debug label from node
-func DeleteDebugLabel(nodeName string) {
+func (dh *DebugFuncs) DeleteDebugLabel(nodeName string) {
 	log.Info("delete label", nodeLabelName, "=", nodeLabelValue, "to node ", nodeName)
 	ocCommand := fmt.Sprintf(deletelabelCommand, nodeName, nodeLabelName)
 	_ = utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
@@ -77,7 +87,7 @@ func DeleteDebugLabel(nodeName string) {
 
 // CheckDebugDaemonset checks if the debug pods are deployed properly
 // the function will try DefaultTimeout/time.Second times
-func CheckDebugDaemonset(expectedDebugPods int) {
+func (dh *DebugFuncs) CheckDebugDaemonset(expectedDebugPods int) {
 	gomega.Eventually(func() bool {
 		log.Debug("check debug daemonset status")
 		return checkDebugPodsReadiness(expectedDebugPods)

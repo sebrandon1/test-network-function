@@ -47,10 +47,11 @@ var (
 // FindTestTarget finds test targets from the current state of the cluster,
 // using labels and annotations, and add them to the `configsections.TestTarget` passed in.
 func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget, namespaces []string) {
+	phf := PodsHelperFuncs{}
 	for _, ns := range namespaces {
 		// find pods by label
 		for _, l := range labels {
-			pods, err := GetPodsByLabel(l, ns)
+			pods, err := phf.GetPodsByLabel(l, ns)
 			if err == nil {
 				for i := range pods.Items {
 					target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(pods.Items[i]))

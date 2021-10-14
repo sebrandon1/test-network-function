@@ -54,24 +54,36 @@ func TestRelease_ReelFirst(t *testing.T) {
 }
 
 func TestRelease_ReelMatch(t *testing.T) {
-	r := redhat.NewRelease(testTimeoutDuration)
+	testCases := []struct {
+		name           string
+		testRegex      string
+		expectedResult int
+	}{
+		{
+			name:           "Positive test",
+			testRegex:      redhat.VersionRegex,
+			expectedResult: tnf.SUCCESS,
+		},
+		{
+			name:           "Negative test",
+			testRegex:      redhat.NotRedHatBasedRegex,
+			expectedResult: tnf.FAILURE,
+		},
+		{
+			name:           "Error case.  Note, this shouldn't ever happen based on the FSM, but it is better to be defensive.",
+			testRegex:      "unknown regex",
+			expectedResult: tnf.ERROR,
+		},
+	}
 
-	// Positive test.
-	step := r.ReelMatch(redhat.VersionRegex, "", "")
-	assert.Nil(t, step)
-	assert.Equal(t, tnf.SUCCESS, r.Result())
+	for _, tc := range testCases {
+		r := redhat.NewRelease(testTimeoutDuration)
 
-	r = redhat.NewRelease(testTimeoutDuration)
-
-	// Negative test.
-	step = r.ReelMatch(redhat.NotRedHatBasedRegex, "", "")
-	assert.Nil(t, step)
-	assert.Equal(t, tnf.FAILURE, r.Result())
-
-	// Error case.  Note, this shouldn't ever happen based on the FSM, but it is better to be defensive.
-	step = r.ReelMatch("unknown regex", "", "")
-	assert.Nil(t, step)
-	assert.Equal(t, tnf.ERROR, r.Result())
+		// Positive test.
+		step := r.ReelMatch(tc.testRegex, "", "")
+		assert.Nil(t, step)
+		assert.Equal(t, tc.expectedResult, r.Result())
+	}
 }
 
 func TestRelease_ReelTimeout(t *testing.T) {

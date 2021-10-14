@@ -27,7 +27,8 @@ var env *configpkg.TestEnvironment
 
 var _ = ginkgo.BeforeSuite(func() {
 	for name := range autodiscover.GetNodesList() {
-		autodiscover.DeleteDebugLabel(name)
+		df := autodiscover.DebugFuncs{}
+		df.DeleteDebugLabel(name)
 	}
 })
 
@@ -42,6 +43,7 @@ var _ = ginkgo.AfterSuite(func() {
 		}
 		node.Oc.Close()
 		node.Oc = nil
-		autodiscover.DeleteDebugLabel(name)
+		df := autodiscover.DebugFuncs{}
+		df.DeleteDebugLabel(name)
 	}
 })

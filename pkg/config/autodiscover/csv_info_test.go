@@ -22,6 +22,8 @@ import (
 	"path"
 	"testing"
 
+	"errors"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,14 +48,29 @@ func loadCSVResource(filePath string) (csv CSVResource) {
 }
 
 func TestCSVGetAnnotationValue(t *testing.T) {
-	csv := loadCSVResource(csvFilePath)
-	var val []string
+	testCases := []struct {
+		annotationValue string
+		expectedOutput  []string
+		expectedErr     error
+	}{
+		{
+			annotationValue: "notPresent",
+			expectedOutput:  nil,
+			expectedErr:     errors.New("failed to find annotation 'notPresent' on CSV 'CSVNamespace/CSVName'"),
+		},
+		{
+			annotationValue: "test-network-function.com/operator_tests",
+			expectedOutput:  []string{"OPERATOR_STATUS", "ANOTHER_TEST"},
+			expectedErr:     nil,
+		},
+	}
 
-	err := csv.GetAnnotationValue("notPresent", &val)
-	assert.Equal(t, 0, len(val))
-	assert.NotNil(t, err)
+	for _, tc := range testCases {
+		csv := loadCSVResource(csvFilePath)
+		var val []string
 
-	err = csv.GetAnnotationValue("test-network-function.com/operator_tests", &val)
-	assert.Equal(t, []string{"OPERATOR_STATUS", "ANOTHER_TEST"}, val)
-	assert.Nil(t, err)
+		err := csv.GetAnnotationValue(tc.annotationValue, &val)
+		assert.Equal(t, tc.expectedOutput, val)
+		assert.Equal(t, tc.expectedErr, err)
+	}
 }

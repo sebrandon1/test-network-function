@@ -211,10 +211,12 @@ func (env *TestEnvironment) reset() {
 	env.Config.Partner = configsections.TestPartner{}
 	env.Config.TestTarget = configsections.TestTarget{}
 	env.TestOrchestrator = nil
+
+	dh := autodiscover.DebugFuncs{}
 	// Delete Oc debug sessions before re-creating them
 	for name, node := range env.NodesUnderTest {
 		if node.HasDebugPod() {
-			autodiscover.DeleteDebugLabel(name)
+			dh.DeleteDebugLabel(name)
 		}
 	}
 	env.NameSpacesUnderTest = nil
@@ -314,7 +316,8 @@ func (env *TestEnvironment) labelNodes() {
 	// label all nodes
 	for nodeName, node := range env.NodesUnderTest {
 		if node.HasDebugPod() {
-			autodiscover.AddDebugLabel(nodeName)
+			df := autodiscover.DebugFuncs{}
+			df.AddDebugLabel(nodeName)
 		}
 	}
 }
@@ -363,8 +366,9 @@ func (env *TestEnvironment) discoverNodes() {
 				expectedDebugPods++
 			}
 		}
-		autodiscover.CheckDebugDaemonset(expectedDebugPods)
-		autodiscover.FindDebugPods(&env.Config.Partner)
+		df := autodiscover.DebugFuncs{}
+		df.CheckDebugDaemonset(expectedDebugPods)
+		df.FindDebugPods(&env.Config.Partner)
 		for _, debugPod := range env.Config.Partner.ContainersDebugList {
 			env.ContainersToExcludeFromConnectivityTests[debugPod.ContainerIdentifier] = ""
 		}

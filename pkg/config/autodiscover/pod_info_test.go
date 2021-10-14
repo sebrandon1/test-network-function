@@ -49,13 +49,31 @@ func loadPodResource(filePath string) (pod PodResource) {
 }
 
 func TestPodGetAnnotationValue(t *testing.T) {
-	pod := loadPodResource(testOrchestratorFilePath)
-	var val string
-	err := pod.GetAnnotationValue("notPresent", &val)
-	assert.Equal(t, "", val)
-	assert.NotNil(t, err)
 
-	err = pod.GetAnnotationValue("test-network-function.com/defaultnetworkinterface", &val)
-	assert.Equal(t, "eth0", val)
-	assert.Nil(t, err)
+	testCases := []struct {
+		annotationValue string
+		expectedOutput  string
+	}{
+		{
+			annotationValue: "notPresent",
+			expectedOutput:  "",
+		},
+		{
+			annotationValue: "test-network-function.com/defaultnetworkinterface",
+			expectedOutput:  "eth0",
+		},
+	}
+
+	for _, tc := range testCases {
+		pod := loadPodResource(testOrchestratorFilePath)
+		var val string
+		err := pod.GetAnnotationValue(tc.annotationValue, &val)
+		assert.Equal(t, tc.expectedOutput, val)
+
+		if tc.expectedOutput == "" {
+			assert.NotNil(t, err)
+		} else {
+			assert.Nil(t, err)
+		}
+	}
 }
