@@ -168,6 +168,20 @@ func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID, runti
 	return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
 }
 
+func GetModulesFromNode(nodeName string, nodeOc *interactive.Oc) string {
+	command := `chroot /host lsmod`
+	return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
+}
+
+func GetModuleInfoFromNode(nodeName, moduleName string, nodeOc *interactive.Oc) string {
+	command := `chroot /host modinfo ` + moduleName
+	return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
+}
+
+func ModuleInTree(nodeName, moduleName string, nodeOc *interactive.Oc) bool {
+
+}
+
 // RunCommandInNode runs a command on a remote kubernetes node
 // takes the node name, node oc and command
 // returns the command raw output

@@ -24,6 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
+
 )
 
 const (
@@ -55,6 +56,10 @@ var (
 	etcdOperatorRequestInfo = CertifiedOperatorRequestInfo{
 		Name:         "etcd",
 		Organization: "Core OS",
+	}
+
+	acceptedTaintsRequestInfo = AcceptedTaintsRequestInfo{
+		Taint: "taint1",
 	}
 )
 
@@ -120,6 +125,9 @@ func buildRequestConfig() *TestConfiguration {
 		jenkinsOperatorRequestInfo,
 		etcdOperatorRequestInfo,
 	}
+	conf.AcceptedTaints = []AcceptedTaintsRequestInfo{
+		acceptedTaintsRequestInfo,
+	}
 	return conf
 }
 
@@ -132,6 +140,7 @@ func RequestTest(t *testing.T, marshalFun marshalFunc, unmarshalFun unmarshalFun
 	assert.Equal(t, len(cfg.CertifiedOperatorInfo), 2)
 	assert.Equal(t, cfg.CertifiedOperatorInfo[0], jenkinsOperatorRequestInfo)
 	assert.Equal(t, cfg.CertifiedOperatorInfo[1], etcdOperatorRequestInfo)
+	assert.Equal(t, cfg.AcceptedTaints[0], acceptedTaintsRequestInfo)
 }
 
 func TestRequestInfos(t *testing.T) {

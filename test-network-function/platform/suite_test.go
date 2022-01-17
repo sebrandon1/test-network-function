@@ -53,8 +53,13 @@ var (
 )
 
 func Test_printTainted(t *testing.T) {
-	assert.Equal(t, printTainted(2048), "workaround for bug in platform firmware applied, ")
-	assert.Equal(t, printTainted(32769), "proprietary module was loaded, kernel has been live patched, ")
+	taint1, taint1Slice := printTainted(2048)
+	assert.Equal(t, taint1, "workaround for bug in platform firmware applied, ")
+	assert.Len(t, taint1Slice, 1)
+
+	taint2, taint2Slice := printTainted(32769)
+	assert.Equal(t, taint2, "proprietary module was loaded, kernel has been live patched, ")
+	assert.Len(t, taint2Slice, 2)
 }
 
 //nolint:funlen

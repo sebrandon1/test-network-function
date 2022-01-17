@@ -369,16 +369,19 @@ func testSysctlConfigsHelper(podName, podNamespace string, context *interactive.
 	}
 }
 
-func printTainted(bitmap uint64) string {
+func printTainted(bitmap uint64) (string, []string) {
 	values := getTaintedBitValues()
 	var out string
+	individualTaints := []string{}
 	for i := 0; i < 32; i++ {
 		bit := (bitmap >> i) & 1
 		if bit == 1 {
 			out += fmt.Sprintf("%s, ", values[i])
+			// Storing the individual taint messages for extra parsing.
+			individualTaints = append(individualTaints, values[i])
 		}
 	}
-	return out
+	return out, individualTaints
 }
 
 func testTainted(env *config.TestEnvironment) {
@@ -396,6 +399,7 @@ func testTainted(env *config.TestEnvironment) {
 			tester := nodetainted.NewNodeTainted(common.DefaultTimeout)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
+
 			var message string
 			test.RunWithCallbacks(func() {
 				message = fmt.Sprintf("Decoded tainted kernel causes (code=0) for node %s : None\n", node.Name)
@@ -405,7 +409,30 @@ func testTainted(env *config.TestEnvironment) {
 				if err != nil {
 					message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBitmap, node.Name)
 				} else {
-					message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, printTainted(taintedBitmap))
+					taintMsg, individualTaints := printTainted(taintedBitmap)
+
+					moduleCheck := false
+					for _, it := range individualTaints {
+						if strings.Contains(it, `module was loaded`) {
+							moduleCheck = true
+						}
+					}
+
+					if moduleCheck {
+						// Retrieve the modules from the node.
+						modules := utils.GetModulesFromNode(node.Name, context)
+
+						// Loop through the modules looking for `InTree: Y`.
+						// If the module info does not contain this string, the module is "tainted".
+						for _, module := range modules {
+							if utils.ModuleInTree(module, node.Name, context) {
+
+							}
+						}
+					}
+					// Get all of the modules
+
+					message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, taintMsg)
 				}
 				taintedNodes = append(taintedNodes, node.Name)
 			}, func(e error) {
@@ -418,6 +445,12 @@ func testTainted(env *config.TestEnvironment) {
 				log.Errorf("Ginkgo writer could not write because: %s", err)
 			}
 		}
+
+		// We are expecting tainted nodes to be Nil, but only if:
+		// 1) The reason for the tainted node is contains(`module was loaded`)
+		// 2) The modules loaded are all whitelisted.
+
+		// Example, if there is a t
 		gomega.Expect(taintedNodes).To(gomega.BeNil())
 		gomega.Expect(errNodes).To(gomega.BeNil())
 	})
