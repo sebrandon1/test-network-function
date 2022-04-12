@@ -32,6 +32,10 @@ func TestIsMaster(t *testing.T) {
 			nodeLabel:      MasterLabel,
 		},
 		{
+			expectedOutput: true,
+			nodeLabel:      ControlPlaneLabel,
+		},
+		{
 			expectedOutput: false,
 			nodeLabel:      WorkerLabel,
 		},
@@ -62,6 +66,10 @@ func TestIsWorker(t *testing.T) {
 		{
 			expectedOutput: false,
 			nodeLabel:      MasterLabel,
+		},
+		{
+			expectedOutput: false,
+			nodeLabel:      ControlPlaneLabel,
 		},
 		{
 			expectedOutput: false,

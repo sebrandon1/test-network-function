@@ -19,8 +19,11 @@ package configsections
 // WorkerLabel const for k8s worker
 const WorkerLabel = "node-role.kubernetes.io/worker"
 
-// MasterLabel const for k8s for master
+// MasterLabel const for k8s for master. Deprecated in 1.24.
 const MasterLabel = "node-role.kubernetes.io/master"
+
+// ControlPlaneLabel const for k8s control plane nodes.  Previously 'master'.
+const ControlPlaneLabel = "node-role.kubernetes.io/control-plane"
 
 // Node defines in the cluster. with name of the node and the type of this node master/worker,,,,.
 type Node struct {
@@ -28,10 +31,10 @@ type Node struct {
 	Labels []string
 }
 
-// IsMaster Function that return if the node is master
+// IsMaster Function that return if the node is master/control-plane
 func (node Node) IsMaster() bool {
 	for _, t := range node.Labels {
-		if t == MasterLabel {
+		if t == MasterLabel || t == ControlPlaneLabel {
 			return true
 		}
 	}
