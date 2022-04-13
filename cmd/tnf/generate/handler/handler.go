@@ -9,6 +9,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type myHandler struct {
@@ -80,7 +82,8 @@ func generateHandlerFilesFromTemplates(handlerTemplatesDirectory, newHandlerDire
 
 func generateHandlerFiles(cmd *cobra.Command, args []string) error {
 	handlername := args[0]
-	myhandler := myHandler{LowerHandlername: strings.ToLower(handlername), UpperHandlername: strings.Title(handlername)}
+	mycaser := cases.Title(language.AmericanEnglish)
+	myhandler := myHandler{LowerHandlername: strings.ToLower(handlername), UpperHandlername: mycaser.String(handlername)}
 
 	handlersDirectory, err := getHandlersDirectory()
 	if err != nil {

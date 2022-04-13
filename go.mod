@@ -1,6 +1,6 @@
 module github.com/test-network-function/test-network-function
 
-go 1.17
+go 1.18
 
 replace github.com/google/goexpect => github.com/test-network-function/goexpect v0.0.1
 
